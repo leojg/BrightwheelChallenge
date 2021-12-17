@@ -6,9 +6,9 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.sparkdigital.brightwheelchallenge.R
 import com.sparkdigital.brightwheelchallenge.ui.adapter.RepoAdapter
+import com.sparkdigital.brightwheelchallenge.utils.PaginationListener
 import com.sparkdigital.brightwheelchallenge.viewModel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
@@ -30,16 +30,12 @@ class MainActivity: AppCompatActivity() {
         initObservers()
         viewModel.getRepos()
 
-        list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (viewModel.canFetchMore()) {
-                    val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    if (linearLayoutManager.findLastCompletelyVisibleItemPosition() >= (adapter.itemCount-1) - 5) {
-                        viewModel.getRepos()
-                    }
-                }
+        list.addOnScrollListener(object: PaginationListener(list.layoutManager as LinearLayoutManager) {
+            override val canLoad: Boolean get() = viewModel.canFetchMore()
+            override fun loadMoreItems() {
+                viewModel.getRepos()
             }
+
         })
     }
 
